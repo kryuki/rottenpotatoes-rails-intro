@@ -11,35 +11,50 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params[:ratings].nil? 
-      hash = {}
-      Movie.all_ratings.each do |rating|
-        hash[rating] = 1
+    if (params[:filter] == nil and params[:ratings] == nil and params[:sort] == nil and 
+              (session[:filter] != nil or session[:ratings] != nil or session[:sort] != nil))
+      if (params[:filter] == nil and session[:filter] != nil)
+        params[:filter] = session[:filter]
       end
-      params[:ratings] = hash
-    end
-    
-    if (params[:filter] != nil and params[:filter] != "[]")
-      @filtered_ratings = params[:filter].scan(/[\w-]+/)
+      if (params[:sort] == nil and session[:sort] != nil)
+        params[:sort] = session[:sort]
+      end
+      redirect_to movies_path(:filter => params[:filter], :sort => params[:sort], :ratings => params[:ratings]) 
     else
-      @filtered_ratings = params[:ratings] ? params[:ratings].keys : []
-    end
-    
-    #@movies = Movie.all
-    @all_ratings = Movie.all_ratings
-    @movies = Movie.all if @movies.nil?
-    
-    if (params[:sort] == "title") # Sort by titles
-      @movies = @movies.order(:title)
-    elsif (params[:sort] == "release_date") # Sort by release_date
-      @movies = @movies.order(:release_date)
-    end
-    
-    if (params[:ratings] or params[:filter])
-      if @filtered_ratings.blank?
-        @movies = @movies.where(:rating => @all_ratings)
+      if (params[:filter] != nil and params[:filter] != "[]")
+        @filtered_ratings = params[:filter].scan(/[\w-]+/)
+        session[:filter] = params[:filter]
       else
-        @movies = @movies.where(:rating => @filtered_ratings)
+        @filtered_ratings = params[:ratings] ? params[:ratings].keys : []
+        session[:filter] = params[:ratings] ? params[:ratings].keys.to_s : nil
+      end
+    
+      session[:sort] = params[:sort]
+      session[:ratings] = params[:ratings]
+    
+      if params[:ratings].nil? 
+        hash = {}
+        Movie.all_ratings.each do |rating|
+          hash[rating] = 1
+        end
+        params[:ratings] = hash
+      end
+      #@movies = Movie.all
+      @all_ratings = Movie.all_ratings
+      @movies = Movie.all if @movies.nil?
+    
+      if (params[:sort] == "title") # Sort by titles
+        @movies = @movies.order(:title)
+      elsif (params[:sort] == "release_date") # Sort by release_date
+        @movies = @movies.order(:release_date)
+      end
+    
+      if (params[:ratings] or params[:filter])
+        if @filtered_ratings.blank?
+          @movies = @movies.where(:rating => @all_ratings)
+        else
+          @movies = @movies.where(:rating => @filtered_ratings)
+        end
       end
     end
   end
