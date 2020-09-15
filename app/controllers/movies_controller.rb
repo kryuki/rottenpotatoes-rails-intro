@@ -11,14 +11,13 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params[:ratings].nil? 
-      hash = {}
-      Movie.all_ratings.each do |rating|
-        hash[rating] = 1
-      end
-      params[:ratings] = hash
-    end
-    
+    # if params[:ratings].nil? 
+    #   hash = {}
+    #   Movie.all_ratings.each do |rating|
+    #     hash[rating] = 1
+    #   end
+    #   params[:ratings] = hash
+    # end
     if (params[:filter] == nil and params[:ratings] == nil and params[:sort] == nil and 
               (session[:filter] != nil or session[:ratings] != nil or session[:sort] != nil))
       if (params[:filter] == nil and session[:filter] != nil)
