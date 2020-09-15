@@ -11,13 +11,36 @@ class MoviesController < ApplicationController
   end
 
   def index
-    #@movies = Movie.all
-    if (params[:sort] == "title") # Sort by titles
-      @movies = Movie.all.order(:title)
-    elsif (params[:sort] == "release_date") # Sort by release_date
-      @movies = Movie.all.order(:release_date)
+    if params[:ratings].nil? 
+      hash = {}
+      Movie.all_ratings.each do |rating|
+        hash[rating] = 1
+      end
+      params[:ratings] = hash
+    end
+    
+    if (params[:filter] != nil and params[:filter] != "[]")
+      @filtered_ratings = params[:filter].scan(/[\w-]+/)
     else
-      @movies = Movie.all
+      @filtered_ratings = params[:ratings] ? params[:ratings].keys : []
+    end
+    
+    #@movies = Movie.all
+    @all_ratings = Movie.all_ratings
+    @movies = Movie.all if @movies.nil?
+    
+    if (params[:sort] == "title") # Sort by titles
+      @movies = @movies.order(:title)
+    elsif (params[:sort] == "release_date") # Sort by release_date
+      @movies = @movies.order(:release_date)
+    end
+    
+    if (params[:ratings] or params[:filter])
+      if @filtered_ratings.blank?
+        @movies = @movies.where(:rating => @all_ratings)
+      else
+        @movies = @movies.where(:rating => @filtered_ratings)
+      end
     end
   end
 
